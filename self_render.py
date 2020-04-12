@@ -85,7 +85,7 @@ def gen_data_emotion(emot='压力'):
         sorting_data = sorted(sorting_data, key=lambda x: x['value'][0],reverse=True)
         maxN = max(maxN, max([w['value'][0] for w in sorting_data]))
         datas[j]['data'] = sorting_data
-    return datas, time_list, total_num, 1000
+    return datas, time_list, total_num, maxN*5
 
 
 def get_year_chart(year: str, title1, title2):
