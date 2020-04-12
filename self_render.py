@@ -48,11 +48,47 @@ def gen_data():
             pro_d = {'name': record['c'], 'value': [x['全部'], 0, record['c']]}
             datas[i]['data'].append(pro_d)
             i += 1
-    return datas, time_list, total_num
+    maxN = 0
+    for j in range(i):
+        sorting_data = datas[j]['data']
+        sorting_data = sorted(sorting_data, key=lambda x: x['value'][0],reverse=True)
+        maxN = max(maxN, max([w['value'][0] for w in sorting_data]))
+        datas[j]['data'] = sorting_data
+    return datas, time_list, total_num, maxN
+
+def gen_data_emotion(emot='压力'):
+    print(emot)
+    total_num = []
+    time_list = []
+    datas = []
+    df = pd.DataFrame(db['quanbu'].find())
+    df = group_week(df)
+    df['datetime'] = df.index
+    for record in df.to_dict(orient='records'):
+        dt = record['datetime']
+        datas.append({'time': dt.strftime('%Y%m%d'), 'data': []})
+        time_list.append(dt.strftime('%Y%m%d'))
+        total_num.append(record[emot]/record['全部']*10000)
+    for record in pro_df.to_dict(orient='records'):
+        df = pd.DataFrame(db[record['e']].find())
+        df = group_week(df)
+        i = 0
+        for x in df.to_dict(orient='records'):
+            if x[emot]<=5:
+                continue
+            pro_d = {'name': record['c'], 'value': [x[emot]/x['全部']*10000, 0, record['c']]}
+            datas[i]['data'].append(pro_d)
+            i += 1
+    maxN = 0
+    for j in range(i):
+        sorting_data = datas[j]['data']
+        sorting_data = sorted(sorting_data, key=lambda x: x['value'][0],reverse=True)
+        maxN = max(maxN, max([w['value'][0] for w in sorting_data]))
+        datas[j]['data'] = sorting_data
+    return datas, time_list, total_num, 1000
 
 
-
-def get_year_chart(year: str):
+def get_year_chart(year: str, title1, title2):
     map_data = [[[x["name"], x["value"]] for x in d["data"]] for d in data
                 if d["time"] == year][0]
     min_data, max_data = (minNum, maxNum)
@@ -85,7 +121,7 @@ def get_year_chart(year: str):
         },
     ).set_global_opts(
         title_opts=opts.TitleOpts(
-            title="" + str(year) + "全国各省在人民日报微博上的评论数 数据来源：微博",
+            title="" + str(year) + title1,
             subtitle="",
             pos_left="center",
             pos_top="top",
@@ -121,8 +157,7 @@ def get_year_chart(year: str):
                 data=[opts.MarkPointItem(type_="max")]),
         ).set_series_opts(label_opts=opts.LabelOpts(
             is_show=False)).set_global_opts(title_opts=opts.TitleOpts(
-                title="全国微博评论数每周变化", pos_left="72%",
-                pos_top="5%")))
+                title=title2, pos_left="72%", pos_top="5%")))
     bar_x_data = [x[0] for x in map_data]
     bar_y_data = [{"name": x[0], "value": x[1][0]} for x in map_data]
     bar = (Bar().add_xaxis(xaxis_data=bar_x_data).add_yaxis(
@@ -179,16 +214,13 @@ def get_year_chart(year: str):
 
     return grid_chart
 
-
-if __name__ == "__main__":
-
-    maxNum = 97300
-    minNum = 30
-    data, time_list, total_num = gen_data()
+def render(input_d):
+    data, time_list, total_num, maxNum, output_name,title1, title2 = input_d
+    minNum = 1
     timeline = Timeline(init_opts=opts.InitOpts(
         width="1600px", height="900px", theme=ThemeType.DARK))
     for y in time_list:
-        g = get_year_chart(year=y)
+        g = get_year_chart(y, title1,title2)
         timeline.add(g, time_point=str(y))
 
     timeline.add_schema(
@@ -200,8 +232,14 @@ if __name__ == "__main__":
         pos_right="5",
         pos_top="20",
         pos_bottom="20",
-        width="60",
+        width="73",
         label_opts=opts.LabelOpts(is_show=True, color="#fff"),
     )
-
-    timeline.render("test.html")
+    timeline.render(output_name)
+if __name__ == "__main__":
+    data, time_list, total_num, maxNum = gen_data()
+    render(tuple([data, time_list, total_num, maxNum, "html/人民日报评论数.html", "全国各省在人民日报微博上的评论数 数据来源：微博","全国微博评论数每周变化" ]))
+    from utility import items
+    for emot in items[1:]:
+        data, time_list, total_num, maxNum =gen_data_emotion(emot)
+        render(tuple([data, time_list, total_num, maxNum, "html/%s.html"%emot, "全国各省在人民日报微博上的情感占比：%s 数据来源：微博"%emot,"全国微博情感每周变化："+emot]))

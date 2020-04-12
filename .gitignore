@@ -1,0 +1,3 @@
+*.word
+*.word.bz2
+__pycache__
