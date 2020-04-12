@@ -218,7 +218,7 @@ def render(input_d):
     data, time_list, total_num, maxNum, output_name,title1, title2 = input_d
     minNum = 1
     timeline = Timeline(init_opts=opts.InitOpts(
-        width="1600px", height="900px", theme=ThemeType.DARK))
+        width="1520px", height="720px", theme=ThemeType.DARK))
     for y in time_list:
         g = get_year_chart(y, title1,title2)
         timeline.add(g, time_point=str(y))
