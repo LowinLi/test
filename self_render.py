@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from utility import items, pro_df
 import pymongo
 from render import *
-db = pymongo.MongoClient('localhost', 27017).Emotion_Count_Db
+db = pymongo.MongoClient('localhost', 27017).Emotion2_Count_Db
 
 
 def group_week(df):
