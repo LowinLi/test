@@ -22,7 +22,7 @@ def group_week(df):
         for item in items:
             data.append(day_df[item].sum())
         datas.append(data)
-    new_df = pd.DataFrame(datas, columns=['week'] + items).iloc[1:-1]
+    new_df = pd.DataFrame(datas, columns=['week'] + items).iloc[1:]
     new_df.index = pd.to_datetime(new_df['week'])
     return new_df
 
