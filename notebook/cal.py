@@ -13,6 +13,6 @@ for key, value in a.items():
     co = client.Weibo_Local_Db.comment
     pat = '|'.join(value)
 
-    for x in tqdm(co.find({"comment_context":{"$regex":pat},"update_time":{"$gte":datetime(2020,4,10,12)}},{'comment_context':1})):
+    for x in tqdm(co.find({"comment_context":{"$regex":pat},"update_time":{"$gte":datetime(2020,4,11,12)}},{'comment_context':1})):
         pat_answer = ','.join(sorted(list(set(re.findall(pat,x['comment_context'])))))
         co.update({'_id':x['_id']},{'$set':{key:pat_answer}})
